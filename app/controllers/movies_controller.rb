@@ -2,7 +2,7 @@ class MoviesController < ApplicationController
 
   def initialize()
      @all_ratings = []
-      Movie.find(:all,:group => "rating").each do |movie|
+      Movie.find_by_sql("SELECT rating from movies group by rating").each do |movie|
          @all_ratings << movie.rating
       end
   end
