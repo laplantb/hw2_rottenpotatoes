@@ -5,6 +5,7 @@ class MoviesController < ApplicationController
       Movie.find_by_sql("SELECT rating from movies group by rating").each do |movie|
          @all_ratings << movie.rating
       end
+      super
   end
 
   def show
