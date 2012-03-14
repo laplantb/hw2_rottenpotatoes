@@ -14,23 +14,49 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
-  def index
-    if (! params.has_key?(:sort) )
-        @sortkey = "id"
-    else
-        @sortkey = params[:sort]
-    end
+  def redirect_index(   )
+    @sortkey = "id"
     @filter_ratings = {}
-    if (params.has_key?(:ratings))
-      @filter_ratings = params[:ratings]
-      @movies = Movie.find(:all,:order => @sortkey, :conditions => [ "rating IN (?)", @filter_ratings.keys()])
-    else
-      @movies = Movie.find(:all,:order => @sortkey)
+    redirect = false
+    if params.has_key?(:sort)
+        @sortkey = params[:sort]
+        session[:sort] = params[:sort]
+    elsif session.has_key?(:sort)
+        @sortkey = session[:sort]
+        redirect = true
     end
+
+    if params.has_key?(:ratings)
+       @filter_ratings = params[:ratings]
+       session[:ratings] = params[:ratings]
+    elsif session.has_key?(:ratings)
+       @filter_ratings = session[:ratings]
+       redirect =  true
+    end
+
+     return redirect, if redirect and @sortkey != "id" and !@filter_ratings.empty?  then  movies_path( :sort => @sortkey, :ratings => @filter_ratings ) elsif
+                         redirect and @sortkey != "id"  then  movies_path( :sort => @sortkey ) elsif
+                         redirect  then movies_path( :ratings => @filter_ratings ) end
+   
+      
+  end
   
 
+  def index
     
-   end
+    redirect, path = redirect_index()
+    if redirect
+      redirect_to(path) and return
+    end
+
+    
+    if not @filter_ratings.empty?
+       @movies = Movie.find(:all,:order => @sortkey, :conditions => [ "rating IN (?)", @filter_ratings.keys()] )
+    else
+       @movies = Movie.find(:all,:order => @sortkey )
+    end
+    
+  end
 
   def new
     # default: render 'new' template
